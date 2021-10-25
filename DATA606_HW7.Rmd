@@ -1,0 +1,374 @@
+---
+title: "Chapter 7 - Inference for Numerical Data"
+author: ""
+output:
+  pdf_document:
+      extra_dependencies: ["geometry", "multicol", "multirow", "xcolor"]
+---
+
+### Title: CUNY SPS MDS DATA606_HW7"
+### Author: Charles Ugiagbe
+### Date: "10/24/2021"
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Working backwards, Part II.** (5.24, p. 203) A 90% confidence interval for a population mean is (65, 77). The population distribution is approximately normal and the population standard deviation is unknown. This confidence interval is based on a simple random sample of 25 observations. Calculate the sample mean, the margin of error, and the sample standard deviation.
+
+
+##        Solution 1:
+
+Sample Mean
+```{r}
+up.value <- 77
+lo.value <- 65
+n <- 25
+sample.mean <- (up.value + lo.value) / 2; sample.mean
+```
+
+Margin of Error
+```{r}
+margin.error <- up.value - sample.mean; margin.error
+```
+
+Standard Deviation
+```{r}
+t.value <-abs(qt(0.10/2, df=n-1))
+s.deviation <- margin.error * sqrt(n) / t.value; s.deviation
+```
+
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**SAT scores.** (7.14, p. 261) SAT scores of students at an Ivy League college are distributed with a standard deviation of 250 points. Two statistics students, Raina and Luke, want to estimate the average SAT score of students at this college as part of a class project. They want their margin of error to be no more than 25 points.
+
+(a) Raina wants to use a 90% confidence interval. How large a sample should she collect?
+(b) Luke wants to use a 99% confidence interval. Without calculating the actual sample size, determine whether his sample should be larger or smaller than Raina's, and explain your reasoning.
+(c) Calculate the minimum required sample size for Luke.
+
+
+##        Solution 2:
+
+2a)
+
+```{r}
+s.deviation <- 250
+margin.error <- 25
+#.90+((1-0.90)/2)
+z.value = qnorm(0.950)
+n <- (z.value * s.deviation / margin.error)^2; round(n)
+```
+
+2b)  
+
+Luke will need a larger sample. n is directly proportional to the square of $z^{*}$. Increasing the confidence interval will lead to a higher value of $z^{*}$ which will in turn lead to a higher value for n.  
+
+2c) Calculate the minimum required sample size for Luke.
+
+```{r}
+s.deviation <- 250
+margin.error <- 25
+#.99+((1-0.99)/2)
+z.value = qnorm(0.995)
+n <- (z.value * s.deviation / margin.error)^2; round(n+1)
+```
+
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**High School and Beyond, Part I.** (7.20, p. 266) The National Center of Education Statistics conducted a survey of high school seniors, collecting test data on reading, writing, and several other subjects. Here we examine a simple random sample of 200 students from this survey. Side-by-side box plots of reading and writing scores as well as a histogram of the differences in scores are shown below.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.height=3}
+library(openintro)
+data(hsb2)
+scores <- c(hsb2$read, hsb2$write)
+gp <- c(rep('read', nrow(hsb2)), rep('write', nrow(hsb2)))
+par(mar = c(3, 4, 0.5, 0.5), las = 1, mgp = c(2.8, 0.7, 0), 
+    cex.axis = 1.1, cex.lab = 1.1)
+openintro::dotPlot(scores, gp, vertical = TRUE, ylab = "scores", 
+                   at=1:2+0.13, col = COL[1,3], 
+                   xlim = c(0.5,2.5), ylim = c(20, 80), 
+                   axes = FALSE, cex.lab = 1.25, cex.axis = 1.25)
+axis(1, at = c(1,2), labels = c("read","write"), cex.lab = 1.25, cex.axis = 1.25)
+axis(2, at = seq(20, 80, 20), cex.axis = 1.25)
+boxplot(scores ~ gp, add = TRUE, axes = FALSE, col = NA)
+
+par(mar=c(3.3, 2, 0.5, 0.5), las = 1, mgp = c(2.1, 0.7, 0), 
+    cex.lab = 1.25, cex.axis = 1.25)
+histPlot(hsb2$read - hsb2$write, col = COL[1], 
+         xlab = "Differences in scores (read - write)", ylab = "")
+```
+
+(a) Is there a clear difference in the average reading and writing scores?
+(b) Are the reading and writing scores of each student independent of each other?
+(c) Create hypotheses appropriate for the following research question: is there an evident difference in the average scores of students in the reading and writing exam?
+(d) Check the conditions required to complete this test.
+(e) The average observed difference in scores is ${ \widehat { x }  }_{ read-write }=-0.545$, and the standard deviation of the differences is 8.887 points. Do these data provide convincing evidence of a difference between the average scores on the two exams?
+(f) What type of error might we have made? Explain what the error means in the context of the application.
+(g) Based on the results of this hypothesis test, would you expect a confidence interval for the average difference between the reading and writing scores to include 0? Explain your reasoning.
+
+
+##        Solution 3:
+
+3a)  
+
+I do not see a clear difference between the reading and writing scores. Although the mean of the writing scores is slightly higher than the mean of the reading scores, but the spread of the writing scores is smaller than that of the reading scores. The histogram of differences in scores is nearly normal. Looking at the visualizations alone, there is no convincing evidence that a clear difference in the average reading and writing scores exists.  
+
+3b)  
+
+The sample is from a random sample. Hence, the scores of each student are independent of the scores of other students. However, reading and writing for each student would not be independent as they are paired.  
+
+3c)  
+
+Null Hypothesis, $H_{0}$: There is no difference in the reading and writing scores.$\mu_{read} - \mu_{write} = 0$  
+Alternative Hypothesis, $H_{1}$: There is some difference in the reading and writing scores.$\mu_{read} - \mu_{write} \neq 0$  
+
+3d) 
+
+Independence is met. Sample size is large enough. No strong skew
+
+3e) 
+
+These data provides the information to compute the pvalue which would confirm our hypothesis
+
+```{r}
+mean.diff <- -0.545
+sd.diff <- 8.887
+n.diff <- 200
+se.diff <- sd.diff/sqrt(n.diff)
+t.value <- mean.diff/se.diff; t.value
+```
+
+```{r}
+p.value <- pt(t.value, df=n.diff-1); p.value
+```
+The pvalue is greater than the critical value of 0.05, which fails to reject the null hypothesis; hence, based on data, there’s no strong evidence of difference between reading and writing in SAT scores
+
+3f)
+
+We made Type II error, because we fails to reject $H_{0}$, when it is false. It may be that there is actually difference, but data does not support it
+
+3g)
+
+Yes since the null hypothesis says there’s no difference in scores
+
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**Fuel efficiency of manual and automatic cars, Part II.** (7.28, p. 276) The table provides summary statistics on highway fuel economy of cars manufactured in 2012. Use these statistics to calculate a 98\% confidence interval for the difference between average highway mileage of manual and automatic cars, and interpret this interval in the context of the data.
+
+\begin{tabular}{l c c }
+\hline
+        & \multicolumn{2}{c}{Hwy MPG} \\
+\hline
+            & Automatic     & Manual         \\
+Mean    & 22.92         & 27.88          \\
+SD      & 5.29          & 5.01           \\
+n       & 26            & 26 \\
+\hline
+& \\
+& \\
+\end{tabular}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=3, fig.height=3}
+library(openintro)
+fuel_eff <- read.csv("https://github.com/jbryer/DATA606Fall2019/raw/master/course_data/fuel_eff.csv", stringsAsFactors = TRUE)
+man_rows <- which(fuel_eff$transmission == "M")
+aut_rows <- which(fuel_eff$transmission == "A")
+set.seed(3583)
+man_rows_samp <- sample(man_rows, 26)
+aut_rows_samp <- sample(aut_rows, 26)
+fuel_eff_samp <- fuel_eff[c(man_rows_samp,aut_rows_samp), ]
+fuel_eff_samp$transmission <- droplevels(fuel_eff_samp$transmission)
+levels(fuel_eff_samp$transmission) <- c("automatic", "manual")
+boxPlot(fuel_eff_samp$hwy_mpg, fact = fuel_eff_samp$transmission, ylim = c(10, 37), 
+        xlab = "Hwy MPG", axes = FALSE, xlim = c(0.5, 2.5))
+axis(1, at = c(1,2), labels = c("automatic","manual"))
+axis(2, at = c(15,25,35))
+```
+
+
+##        Solution 4:
+
+I will Conduct hypothesis testing if there’s difference in city mileage between automatic and manual transmisison
+
+$H_{0}:$ there is no difference in average fuel efficiency between automatic and manual cars
+
+$H_{A}:$ there is difference in average fuel efficiency between automatic and manual cars
+
+```{r}
+summary <- c('Mean', 'SD', 'n')
+auto <- c(16.12, 3.58, 26)
+manual <- c(19.85, 4.51, 26)
+
+df <- data.frame(summary,auto,manual); df
+```
+
+
+```{r}
+mean.diff <- df$auto[1] - df$manual[1]
+se <- sqrt((((df$auto[2])^2/26) + ((df$m[2])^2/26)))
+t.value <- mean.diff/se; t.value
+```
+
+
+```{r}
+p.value <- pt(t.value, df=25); p.value
+```
+**Based on the p-value being very small at 0.0014, we reject the null hypothesis. The sample data supports the alternate hypothesis that there is a difference in average city mileage between automatic and manual transmission.**
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**Email outreach efforts.** (7.34, p. 284) A medical research group is recruiting people to complete short surveys about their medical history. For example, one survey asks for information on a person's family history in regards to cancer. Another survey asks about what topics were discussed during the person's last visit to a hospital. So far, as people sign up, they complete an average of just 4 surveys, and the standard deviation of the number of surveys is about 2.2. The research group wants to try a new interface that they think will encourage new enrollees to complete more surveys, where they will randomize each enrollee to either get the new interface or the current interface. How many new enrollees do they need for each interface to detect an effect size of 0.5 surveys per enrollee, if the desired power level is 80%?
+
+
+##        Solution 5:
+
+```{r}
+sd1 <- 2.2
+sd2 <- 2.2
+effect_size <- 0.5
+standard_error <- 0.5/(0.84+1.96)
+n <- (sd1^2+sd2^2)/standard_error^2
+n
+```
+**Therefore, they would need at least 304 enrollees.**
+
+
+
+
+--------------------------------------------------------------------------------
+
+\clearpage
+
+**Work hours and education.** The General Social Survey collects data on demographics, education, and work, among many other characteristics of US residents.47 Using ANOVA, we can consider educational attainment levels for all 1,172 respondents at once. Below are the distributions of hours worked by educational attainment and relevant summary statistics that will be helpful in carrying out this analysis.
+
+\begin{center}
+\begin{tabular}{l  r  r  r  r  r  r}
+                & \multicolumn{5}{c}{\textit{Educational attainment}} \\
+\cline{2-6}
+                & Less than HS  & HS    & Jr Coll   & Bachelor's & Graduate & Total \\
+\hline
+Mean            & 38.67         & 39.6  & 41.39     & 42.55     & 40.85     & 40.45 \\
+SD              & 15.81         & 14.97 & 18.1      & 13.62     & 15.51     & 15.17 \\
+n               & 121           & 546   & 97        & 253       & 155       & 1,172 \\
+\hline
+\end{tabular}
+\end{center}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=10, fig.height=3}
+library(openintro)
+library(xtable)
+if(!file.exists('gss2010.Rda')) {
+	download.file('https://github.com/jbryer/DATA606Fall2019/raw/master/course_data/gss2010.Rda',
+				  dest = 'gss2010.Rda', mode = "wb")
+}
+load("gss2010.Rda")
+gss <- gss2010
+gss_sub <- gss[which(!is.na(gss$hrs1) & !is.na(gss$degree)), ]
+gss_sub <- gss_sub[, which(names(gss_sub) == "degree" | names(gss_sub) == "hrs1")]
+levels(gss_sub$degree) <- c("Less than HS","HS","Jr Coll","Bachelor's","Graduate")
+par(mar = c(2,3.5,0.5,.5), mgp = c(2.3,0.7,0), las = 1)
+
+boxPlot(gss_sub$hrs1, fact = gss_sub$degree, 
+        col = COL[1,2], ylab = "Hours worked per week", xlim=c(0.6, 5.4))
+```
+
+(a) Write hypotheses for evaluating whether the average number of hours worked varies across the five groups.
+(b) Check conditions and describe any assumptions you must make to proceed with the test.
+(c) Below is part of the output associated with this test. Fill in the empty cells.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{lrrrrr}
+  \hline
+            & Df    
+                    & Sum Sq        
+                            & Mean Sq       
+                                    & F-value      
+                                            & Pr($>$F) \\ 
+  \hline
+degree      & \fbox{\textcolor{white}{{\footnotesize XXXXX}}}       
+                    & \fbox{\textcolor{white}{{\footnotesize XXXXX}}}       
+                            & 501.54    
+                                    & \fbox{\textcolor{white}{{\footnotesize XXXXX}}}   
+                                            & 0.0682 \\ 
+Residuals   & \fbox{\textcolor{white}{{\footnotesize XXXXX}}} 
+                    & 267,382     
+                            & \fbox{\textcolor{white}{{\footnotesize  XXXXX}}}          
+                                    &       
+                                            &  \\ 
+   \hline
+Total       & \fbox{\textcolor{white}{{\footnotesize XXXXX}}} 
+                    &\fbox{\textcolor{white}{{\footnotesize XXXXX}}}
+\end{tabular}
+\end{center}
+
+(d) What is the conclusion of the test?
+
+
+##        Solution 6:
+
+6a)  
+
+$H_{0}$: The average number of hours worked is the same across all 5 groups
+
+$H_{1}$: The average number of hours worked is not the same across all 5 groups  
+
+6b) 
+
+Check conditions/assumptions:  
+- The observations are independent within and across groups: The study has a sample size of about 1172 respondents which is sufficiently large.  
+- The data within each group are nearly normal: From the box plots, there are no extreme outliers and the sample sizes for each group are sufficiently large. Hence, I can assume that the data within each group are nearly normal.  
+- The variability across the group are equal. The variability for each group can be assumed to be about the same since they all have almost similar standard deviations.  
+
+6c)
+
+**Degree of freedom: Df**;  
+degree = k - 1 = 5 - 1 = 4;  
+Residuals = n - k = 1172 - 5 = 1167;  
+Df Total = n = 1172  
+**Sum of Sq**  
+$MSG = \frac{1}{df_{G}}*SSG; SSG = MSG*df_{G} = 501.54 * 4 = 2006.16$  
+=> SSG = 2006.16;  
+$SST = SSG + SSE = 2006.16 + 267382 = 269388.16$  
+=> SST = 269388.16;  
+**Mean Sq**  
+$MSE = \frac{1}{df_{E}}*SSE = \frac{1}{1167}*267382 = 229.119$  
+**F-value**  
+$F_{value} = \frac{MSG}{MSE} = \frac{501.54}{229.119} = 2.18899$  
+
+Create a dataframe:
+```{r}
+headers <- c("Df", "Sum-Sq", "Mean-Sq", "F-value", "Pr(>F)")
+row_names <- c("degree", "Residuals", "Total")
+degree <- c(4, 2006.16, 501.54, 2.18899, 0.0682)
+Residuals <- c(1167, 267382, 229.119, NA, NA)
+Total <- c(1172, 269388.16, NA, NA, NA)
+table <- data.frame(degree, Residuals, Total)
+row.names(table) <- headers
+table <- t.data.frame(table)
+table
+```
+
+
+6d)
+
+Conclusion: Since $p_{value} = 0.0682 > 0.05$, we do not reject the null hypothesis. Hence, there is no statistical evidence to support that there are differences across all groups.  
+
+
+
+
+
+
